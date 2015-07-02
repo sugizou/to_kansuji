@@ -3,14 +3,14 @@
 class String
 
   KANSUJI_STR = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"]
-  KANSUJI_PLACE = [nil, "十", "百", "千"]
-  KANSUJI_UNIT = [nil, "万", "億", "兆", "京", "垓"]
+  KANSUJI_PLACE = ["", "十", "百", "千"]
+  KANSUJI_UNIT = ["", "万", "億", "兆", "京", "垓", "𥝱", "穣", "溝", "澗", "正", "載", "極", "恒河沙", "阿僧祇", "那由他", "不可思議", "無量大数"]
 
-  def to_num
+  def to_number
     spt = self.split(//)
     total = num = t = 0
 
-    spt.each do |s|
+    spt.each_with_index do |s,i|
       if KANSUJI_UNIT.include?(s)
         idx = KANSUJI_UNIT.index(s)
         num += t
@@ -18,23 +18,23 @@ class String
         num = t = 0
       elsif KANSUJI_PLACE.include?(s)
         idx = KANSUJI_PLACE.index(s)
-        num += t > 0 ? t = t * (10 ** idx) : (10 ** idx);
+        num += t > 0 ? t * (10 ** idx) : (10 ** idx);
         t = 0
       elsif KANSUJI_STR.include?(s)
         t += KANSUJI_STR.index(s)
       end
 
-      total += num + t if spt.last == s
+      total += num + t if i >= (spt.size - 1)
     end
     total.to_i
   end
 end
 
-class Fixnum
+class Integer
 
   KANSUJI_STR = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"]
   KANSUJI_PLACE = ["", "十", "百", "千"]
-  KANSUJI_UNIT = ["", "万", "億", "兆", "京", "垓"]
+  KANSUJI_UNIT = ["", "万", "億", "兆", "京", "垓", "𥝱", "穣", "溝", "澗", "正", "載", "極", "恒河沙", "阿僧祇", "那由他", "不可思議", "無量大数"]
 
   def to_kansuji
     return KANSUJI_STR[0] if self == 0
@@ -50,7 +50,7 @@ class Fixnum
         s = (sp.to_i != 1 || (i == 0 || i == 3) ? KANSUJI_STR[sp.to_i] : "") + KANSUJI_PLACE[i] + s
       end
 
-      str = s + KANSUJI_UNIT[j] + str
+      str = s + KANSUJI_UNIT[j] + str if s != ""
     end
 
     str
