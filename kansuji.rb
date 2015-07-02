@@ -1,97 +1,59 @@
-class Integer
-  def to_kansuji
-    num_str1 = ["", "十", "百", "千"]
-    num_str2 = ["一", "十", "百", "一千"]
-    num_str3 = ["", "万", "億", "兆", "京", "垓", "𥝱", "穣", "溝", "澗", "正", "載", "極", "恒河沙", "阿僧祇", "那由他", "不可思議", "無量大数"]
-
-    string = ""
-    self.to_s.reverse.chars.each_slice(4).to_a.each_with_index do |chars, j|
-      str = chars.each_with_index.map { |c, i|
-        idx = c.to_i
-        "#{["", num_str2[i], "二", "三", "四", "五", "六", "七", "八", "九"][idx]}#{num_str1[i] if idx > 1}"
-      }.reverse.join + num_str3[j]
-      string.insert(0, str) unless num_str3.include?(str)
-    end
-    string
-  end
-end
+# coding: utf-8
 
 class String
-  def to_number
-    num_str = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九']
-    num_str1 = ["", "十", "百", "千"]
-    num_str3 = ["", "万", "億", "兆", "京", "垓", "𥝱", "穣", "溝", "澗", "正", "載", "極", "恒河沙", "阿僧祇", "那由他", "不可思議", "無量大数"]
 
-    kansuji_clone = self.dup
-    kansuji = []
-    indexs = []
-    sub_indexs = []
-    i = 0
+  KANSUJI_STR = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"]
+  KANSUJI_PLACE = [nil, "十", "百", "千"]
+  KANSUJI_UNIT = [nil, "万", "億", "兆", "京", "垓"]
 
-    loop do
-      break unless hit_index = unit_split(kansuji_clone)
+  def to_num
+    spt = self.split(//)
+    total = num = t = 0
 
-      unit = kansuji_clone[0..hit_index]
-
-      if num_str1.index(unit)
-        sub_indexs << i
-      elsif num_str3.index(unit)
-        indexs << { unit => sub_indexs }
-        sub_indexs = []
+    spt.each do |s|
+      if KANSUJI_UNIT.include?(s)
+        idx = KANSUJI_UNIT.index(s)
+        num += t
+        total += num * (10000 ** idx)
+        num = t = 0
+      elsif KANSUJI_PLACE.include?(s)
+        idx = KANSUJI_PLACE.index(s)
+        num += t > 0 ? t = t * (10 ** idx) : (10 ** idx);
+        t = 0
+      elsif KANSUJI_STR.include?(s)
+        t += KANSUJI_STR.index(s)
       end
 
-      kansuji << unit
-      kansuji_clone[0..hit_index] = ''
-      i += 1
-    end # loop do
-
-    kansuji << kansuji_clone unless kansuji_clone.empty?
-
-    kansuji = kansuji.map do |unit|
-      if num_str3.include?(unit)
-        10**(num_str3.index(unit) * 4)
-      elsif num_str1.include?(unit)
-        10**num_str1.index(unit)
-      elsif num_str.include?(unit)
-        num_str.index(unit)
-      end
+      total += num + t if spt.last == s
     end
-
-    indexs.each do |index|
-      index.each do |key, value|
-        unit_num = 10**(num_str3.index(key) * 4)
-        value.each { |val| kansuji[val] = kansuji[val] * unit_num }
-      end
-    end
-
-    sums = []
-
-    loop do
-      first = kansuji.delete_at(0)
-      last = kansuji.delete_at(0)
-
-      if first && last
-        if first > last
-          sums << first + last
-        else
-          sums << first * last
-        end
-      elsif first
-        sums << first
-      end
-
-      break if kansuji.empty?
-    end
-
-    sums.inject {|sum, n| sum + n }
+    total.to_i
   end
-
-  private
-  def unit_split(kansuji)
-    num_str = ["一", '二', '三', '四', '五', '六', '七', '八', '九', "十", "百", "千", "万", "億", "兆", "京", "垓", "𥝱", "穣", "溝", "澗", "正", "載", "極", "恒河沙", "阿僧祇", "那由他", "不可思議", "無量大数"]
-
-    unit = num_str.detect { |unit| kansuji =~ /^#{unit}/ }
-    unit ? (unit.size - 1) : nil
-  end
-
 end
+
+class Fixnum
+
+  KANSUJI_STR = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"]
+  KANSUJI_PLACE = ["", "十", "百", "千"]
+  KANSUJI_UNIT = ["", "万", "億", "兆", "京", "垓"]
+
+  def to_kansuji
+    return KANSUJI_STR[0] if self == 0
+
+    spts = []
+    self.to_s.split(//).reverse.each_slice(4){|slice| spts << slice}
+
+    str = ""
+    spts.each_with_index do |spt, j|
+      s = ""
+      spt.each_with_index do |sp, i|
+        next if sp.to_i == 0
+        s = (sp.to_i != 1 || (i == 0 || i == 3) ? KANSUJI_STR[sp.to_i] : "") + KANSUJI_PLACE[i] + s
+      end
+
+      str = s + KANSUJI_UNIT[j] + str
+    end
+
+    str
+  end
+end
+
