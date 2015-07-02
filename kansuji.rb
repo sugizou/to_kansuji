@@ -8,7 +8,7 @@ class String
 
   def to_number
     total = num = t = 0
-    str = base = self
+    str = check = self
     
     while (str && str.size > 0) do
       (KANSUJI_STR + KANSUJI_PLACE + KANSUJI_UNIT).uniq.compact.each do |s|
@@ -28,9 +28,10 @@ class String
           end
         end
       end
-      if str && str.size == base.size
-        raise "不正な文字が含まれています"
+      if str && str.size == check.size
+        raise "不正な文字が含まれています: #{str}"
       end
+      check = str
     end
     total += num + t
     total.to_i
