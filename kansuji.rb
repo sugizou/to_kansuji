@@ -3,29 +3,36 @@
 class String
 
   KANSUJI_STR = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"]
-  KANSUJI_PLACE = ["", "十", "百", "千"]
-  KANSUJI_UNIT = ["", "万", "億", "兆", "京", "垓", "𥝱", "穣", "溝", "澗", "正", "載", "極", "恒河沙", "阿僧祇", "那由他", "不可思議", "無量大数"]
+  KANSUJI_PLACE = [nil, "十", "百", "千"]
+  KANSUJI_UNIT = [nil, "万", "億", "兆", "京", "垓", "𥝱", "穣", "溝", "澗", "正", "載", "極", "恒河沙", "阿僧祇", "那由他", "不可思議", "無量大数"]
 
   def to_number
-    spt = self.split(//)
     total = num = t = 0
-
-    spt.each_with_index do |s,i|
-      if KANSUJI_UNIT.include?(s)
-        idx = KANSUJI_UNIT.index(s)
-        num += t
-        total += num * (10000 ** idx)
-        num = t = 0
-      elsif KANSUJI_PLACE.include?(s)
-        idx = KANSUJI_PLACE.index(s)
-        num += t > 0 ? t * (10 ** idx) : (10 ** idx);
-        t = 0
-      elsif KANSUJI_STR.include?(s)
-        t += KANSUJI_STR.index(s)
+    str = base = self
+    
+    while (str && str.size > 0) do
+      (KANSUJI_STR + KANSUJI_PLACE + KANSUJI_UNIT).uniq.compact.each do |s|
+        if str =~ /^#{s}/
+          str = str.slice(s.size, str.size - s.size)
+          if KANSUJI_UNIT.include?(s)
+            idx = KANSUJI_UNIT.index(s)
+            num += t
+            total += num * (10000 ** idx)
+            num = t = 0
+          elsif KANSUJI_PLACE.include?(s)
+            idx = KANSUJI_PLACE.index(s)
+            num += t > 0 ? t * (10 ** idx) : (10 ** idx);
+            t = 0
+          elsif KANSUJI_STR.include?(s)
+            t += KANSUJI_STR.index(s)
+          end
+        end
       end
-
-      total += num + t if i >= (spt.size - 1)
+      if str && str.size == base.size
+        raise "不正な文字が含まれています"
+      end
     end
+    total += num + t
     total.to_i
   end
 end
